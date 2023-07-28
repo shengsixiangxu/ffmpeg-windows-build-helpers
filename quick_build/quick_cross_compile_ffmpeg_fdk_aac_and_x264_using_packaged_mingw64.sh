@@ -59,17 +59,17 @@ export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencie
 mkdir -p sandbox_quick/$type/quick_install
 cd sandbox_quick/$type/quick_install
 
-# x264
-if [[ ! -f $prefix/lib/libx264.a ]]; then
-  rm -rf x264
-  git clone --depth 1 https://code.videolan.org/videolan/x264.git || exit 1
-  cd x264
-    # --enable-static       library is built by default but not installed
-    ./configure --host=$host --enable-static --cross-prefix=$host- --prefix=$prefix || exit 1
-    make -j$cpu_count
-    make install
-  cd ..
-fi
+# # x264
+# if [[ ! -f $prefix/lib/libx264.a ]]; then
+#   rm -rf x264
+#   git clone --depth 1 https://code.videolan.org/videolan/x264.git || exit 1
+#   cd x264
+#     # --enable-static       library is built by default but not installed
+#     ./configure --host=$host --enable-static --cross-prefix=$host- --prefix=$prefix || exit 1
+#     make -j$cpu_count
+#     make install
+#   cd ..
+# fi
 
 # and ffmpeg
 ffmpeg_dir=ffmpeg_simple_${type}_git
@@ -83,10 +83,7 @@ cd $ffmpeg_dir
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f ffbuild/config.mak ]]; then
     # shouldn't really ever need these?
-    ./configure --enable-gpl --enable-libx264 --enable-nonfree \
-      --enable-debug=3 --disable-optimizations \
-      --arch=$arch --target-os=mingw32 \
-      --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_simple_installed || exit 1
+    ./configure --arch=x86_64 --target-os=mingw32 --cross-prefix=x86_64-w64-mingw32- --pkg-config=pkg-config --pkg-config-flags=--static --extra-cflags=-I/mingw64/include --extra-ldflags=-L/mingw64/lib --extra-libs=-liconv --prefix="/c/ffmpeg" --enable-filter=aresample --enable-filter=volume --enable-demuxer=wav --enable-muxer=wav --enable-parser=wav || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
   make -j$cpu_count && make install && echo "done installing it $prefix/ffmpeg_simple_installed"
